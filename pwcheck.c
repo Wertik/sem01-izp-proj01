@@ -12,15 +12,7 @@ int length(char *str)
 
 int cmp(char *str1, char *str2)
 {
-
-    int len = length(str1);
-
-    if (len != length(str2))
-    {
-        return 0;
-    }
-
-    for (int i = 0; i < len; i++)
+    for (int i = 0; str1[i] != '\0' || str2[i] != '\0'; i++)
     {
         if (str1[i] != str2[i])
         {
@@ -33,7 +25,7 @@ int cmp(char *str1, char *str2)
 
 int containsc(char *where, char what)
 {
-    for (int i = 0; i < length(where); i++)
+    for (int i = 0; where[i] != '\0'; i++)
     {
         if (what == where[i])
         {
@@ -49,17 +41,16 @@ int containsc(char *where, char what)
 int find(char *where, char *what)
 {
     int n = 0;
-    int len = length(what);
 
     int count = 0;
 
-    for (int i = 0; i < length(where); i++)
+    for (int i = 0; where[i] != '\0'; i++)
     {
         if (what[n] == where[i])
         {
             n++;
 
-            if (n == len) // reached the end (aka found whole string)
+            if (what[n] == '\0') // reached the end (aka found whole string)
             {
                 count += 1;
 
@@ -79,9 +70,7 @@ int find(char *where, char *what)
 // check whether a string contains at least one character the an ASCII range specified by low & high
 int containsASCIIRange(char *str, int low, int high)
 {
-    int len = length(str);
-
-    for (int n = 0; n < len; n++)
+    for (int n = 0; str[n] != '\0'; n++)
     {
         if (str[n] >= low && str[n] <= high)
         {
@@ -106,17 +95,10 @@ int containsSpecialCharacters(char *str)
 // count how many duplicate sequential characters there are in a given string, until a threshold is reached
 int checkDuplicateChars(char *str, int threshold)
 {
-    int len = length(str);
-
-    if (len == 0)
-    {
-        return 0;
-    }
-
     char last = str[0];
     int count = 0;
 
-    for (int i = 1; i < len; i++)
+    for (int i = 1; str[i] != '\0'; i++)
     {
         if (str[i] == last)
         {
@@ -139,29 +121,14 @@ int checkDuplicateChars(char *str, int threshold)
 }
 
 // slice a string, return into @param buff
-char *slice(char *str, char *buff, int start, int end)
+void slice(char *str, char *buff, int start, int end)
 {
-    int len = length(str);
-
-    for (int n = start; n < len && n < end; n++)
+    for (int n = start; str[n] != '\0' && n < end; n++)
     {
-        // printf("%d\n", n);
         buff[n - start] = str[n];
     }
 
     buff[end - start] = '\0'; // terminate
-
-    return buff;
-}
-
-void clear(char *buff)
-{
-    int len = length(buff);
-
-    for (int n = 0; n < len; n++)
-    {
-        buff[n] = '\0';
-    }
 }
 
 // check whether a string contains any duplicate substrings of given length
@@ -169,14 +136,12 @@ int containsDuplicateSubstrings(char *str, int subLength)
 {
     int len = length(str);
 
-    // find first substring (first n chars)
-    char buff[subLength]; //TODO
+    // hold the substring we're looking for
+    char buff[subLength];
 
-    for (int n = 0; n < len - subLength; n++)
+    for (int n = 0; n < len - subLength + 1; n++)
     {
-        // clear(buff);
         slice(str, buff, n, n + subLength);
-        // printf("%s\n", buff);
 
         if (find(str, buff) > 1) // found more than the original
         {
@@ -254,7 +219,7 @@ int main(int argc, char *argv[])
 
     // stats
 
-    int stats;
+    int stats = 0;
 
     if (argc > 3)
     {
@@ -283,8 +248,7 @@ int main(int argc, char *argv[])
     {
         int read = 1;
 
-        char buffer[100];
-        clear(buffer);
+        char buffer[101];
 
         int c;
         int i;
