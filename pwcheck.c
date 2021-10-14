@@ -55,7 +55,7 @@ int find(char *where, char *what) {
 }
 
 // check whether a string contains at least one character the an ASCII range specified by low & high
-int containsASCIIRange(char *str, int low, int high) {
+int containsASCIIRange(char *str, char low, char high) {
     for (int n = 0; str[n] != '\0'; n++) {
         if (str[n] >= low && str[n] <= high) {
             return 1;
@@ -67,10 +67,10 @@ int containsASCIIRange(char *str, int low, int high) {
 
 // check whether a string contains any special ASCII characters
 int containsSpecialCharacters(char *str) {
-    return (containsASCIIRange(str, 33, 47) ||
-            containsASCIIRange(str, 58, 64) ||
-            containsASCIIRange(str, 91, 96) ||
-            containsASCIIRange(str, 123, 126));
+    return (containsASCIIRange(str, '!', '/') ||
+            containsASCIIRange(str, ';', '@') ||
+            containsASCIIRange(str, '[', '`') ||
+            containsASCIIRange(str, '(', '~'));
 }
 
 // count how many duplicate sequential characters there are in a given string, until a threshold is reached
@@ -193,6 +193,8 @@ int extractParams(int argc, char const *argv[], long *level, long *param, bool *
     // pwcheck 4 2 --stats
 
     // pwcheck -l 4 -p 2 --stats
+
+    // pwcheck 4 -p 2 --stats
 
     // filter out switch arguments, then use the rest to try and find level & param
 
