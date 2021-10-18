@@ -60,34 +60,36 @@ int containsASCIIRange(char *str, char low, char high) {
         if (str[n] >= low && str[n] <= high) {
             return 1;
         }
-    }
+        }
 
     return 0;
 }
 
 // check whether a string contains any special ASCII characters
 int containsSpecialCharacters(char *str) {
-    return (containsASCIIRange(str, '!', '/') ||
+    return (containsASCIIRange(str, ' ', '/') ||
             containsASCIIRange(str, ';', '@') ||
             containsASCIIRange(str, '[', '`') ||
             containsASCIIRange(str, '(', '~'));
 }
 
 // count how many duplicate sequential characters there are in a given string, until a threshold is reached
+// level = 3
+// param = 3 // max. počet stejných charakterů za sebou
 int checkDuplicateChars(char *str, int threshold) {
     char last = str[0];
-    int count = 0;
+    int count = 1;
 
     for (int i = 1; str[i] != '\0'; i++) {
         if (str[i] == last) {
             count += 1;
         } else {
-            count = 0;
+            count = 1;
         }
 
         last = str[i];
 
-        if (count >= threshold - 1) {
+        if (count >= threshold) {
             return 1;
         }
     }
@@ -177,12 +179,6 @@ int containsInt(int *arr, int len, int lf) {
     return 0;
 }
 
-void populateArray(int *arr, int len, int val) {
-    for (int n = 0; n < len; n++) {
-        arr[n] = val;
-    }
-}
-
 int extractParams(int argc, char const *argv[], long *level, long *param, bool *stats) {
     int levelSign = 0;
     int paramSign = 0;
@@ -247,6 +243,9 @@ int extractParams(int argc, char const *argv[], long *level, long *param, bool *
     return 1;
 }
 
+// 0 = správně
+// 1 = chyba
+// != 0 -> chyba, na stderr chybovou hlášku
 int main(int argc, const char *argv[]) {
     long level = 1;
     long param = 1;
