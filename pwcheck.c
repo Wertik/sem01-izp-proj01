@@ -116,7 +116,7 @@ int containsDuplicateSubstrings(char *str, int subLength) {
     for (int n = 0; n < len - subLength + 1; n++) {
         slice(str, buff, n, n + subLength);
 
-        // found more than the original 
+        // found more than the original
         if (find(str, buff) > 1) {
             return 1; // return true
         }
@@ -243,37 +243,42 @@ int extractParams(int argc, char const *argv[], long *level, long *param, bool *
     return 1;
 }
 
-// 0 = správně
-// 1 = chyba
-// != 0 -> chyba, na stderr chybovou hlášku
-int main(int argc, const char *argv[]) {
-    long level = 1;
-    long param = 1;
-    bool stats = false;
-
-    if (!extractParams(argc, argv, &level, &param, &stats)) {
-        return 1;
-    }
-
+int checkBounds(long level, long param) {
     if (level < 0) {
         fprintf(stderr, "Invalid level. Has to be a positive number.\n");
-        return EXIT_FAILURE;
+        return 1;
     }
 
     if (level > 4) {
         fprintf(stderr, "Level too high. Allowed: <1; 4>\n");
-        return EXIT_FAILURE;
+        return 1;
     }
 
     if (level < 1) {
         fprintf(stderr, "Level too low. Allowed: <1; 4>\n");
-        return EXIT_FAILURE;
+        return 1;
     }
 
     // param
 
     if (param < 1) {
         fprintf(stderr, "Invalid param. Has to be a positive number.\n");
+        return EXIT_FAILURE;
+    }
+    
+    return 0;
+}
+
+int main(int argc, const char *argv[]) {
+    long level = 1;
+    long param = 1;
+    bool stats = false;
+
+    if (!extractParams(argc, argv, &level, &param, &stats)) {
+        return EXIT_FAILURE;
+    }
+
+    if (checkBounds(level, param)) {
         return EXIT_FAILURE;
     }
 
