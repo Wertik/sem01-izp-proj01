@@ -40,19 +40,6 @@ int cmp(const char *str1, const char *str2) {
     return 1;
 }
 
-/*
-    check whether a string contains a character.
- */
-int containsc(const char *where, const char what) {
-    for (int i = 0; where[i] != '\0'; i++) {
-        if (what == where[i]) {
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
 bool find(const char *where, const char *what, int start) {
     int n = 0;  // index for @what
 
@@ -140,7 +127,7 @@ bool duplicate_substrings(const char *str, int sub_length) {
     return false;
 }
 
-bool extract_bool_switch(const char *arg, char *param, char *alias, bool *res) {
+bool parse_bool_switch(const char *arg, char *param, char *alias, bool *res) {
     if (cmp(arg, param) || cmp(arg, alias)) {
         *res = true;
         return true;
@@ -168,14 +155,11 @@ bool parse_long_param(const char *arg, const char *next_arg, const char *param,
                       const char *alias, long *res, int *sign) {
     if (cmp(arg, param) || cmp(arg, alias)) {
         if (next_arg == NULL) {
-            fprintf(stderr, "No value for %s provided.", param);
             *sign = 2;
             return true;
         }
 
         if (!parse_long(next_arg, res)) {
-            fprintf(stderr, "%s value has to be a number. Provided: %s\n", arg,
-                    next_arg);
             *sign = 2;
             return true;
         }
@@ -196,8 +180,8 @@ bool extract_params(int argc, char const *argv[], long *level, long *param,
     int level_sign = 0;
     int param_sign = 0;
 
-    bool switches = false;
-    bool fixed = false;
+    bool switches = false;  // an argument matched the switch -l 2 -p 2 syntax.
+    bool fixed = false;     // an argument matched the fixed LEVEL PARAM syntax.
 
     for (int n = 1; n < argc; n++) {
         const char *arg = argv[n];
@@ -212,7 +196,7 @@ bool extract_params(int argc, char const *argv[], long *level, long *param,
             // just parsed.
 
             switches = true;
-        } else if (extract_bool_switch(arg, "--stats", "-s", stats)) {
+        } else if (parse_bool_switch(arg, "--stats", "-s", stats)) {
             // the arguments is a switch
         } else {
             // look for level & param values in the argument
@@ -224,9 +208,7 @@ bool extract_params(int argc, char const *argv[], long *level, long *param,
                 }
 
                 if (switches) {
-                    fprintf(stderr,
-                            "Use one syntax or another, you already started "
-                            "with switches.\n");
+                    fprintf(stderr, "Invalid arguments.\n");
                     return false;
                 }
 
@@ -240,9 +222,7 @@ bool extract_params(int argc, char const *argv[], long *level, long *param,
                 }
 
                 if (switches) {
-                    fprintf(stderr,
-                            "Use one syntax or another, you already started "
-                            "with switches.\n");
+                    fprintf(stderr, "Invalid arguments.\n");
                     return false;
                 }
 
@@ -253,15 +233,11 @@ bool extract_params(int argc, char const *argv[], long *level, long *param,
                 fprintf(stderr, "Too many arguments!\n");
                 return 0;
             }
-
-            if (param_sign == 2 || level_sign == 2) {
-                fprintf(stderr, "Invalid argument %s.\n", argv[n]);
-                return 0;
-            }
         }
 
         // arguments entered are invalid
         if (level_sign == 2 || param_sign == 2) {
+            fprintf(stderr, "Invalid argument %s.\n", argv[n]);
             return false;
         }
     }
@@ -296,6 +272,7 @@ bool check_bounds(long level, long param) {
     return true;
 }
 
+// calculate the score of a password based on how many char groups it contains
 long calculate_score(const char *str) {
     return ascii_range(str, 'A', 'Z') +  // uppercase alfanumeric
            ascii_range(str, 'a', 'z') +  // lowercase alfanumeric
@@ -371,11 +348,11 @@ void process_stats(Stats *statistics, int length) {
 int main(int argc, const char *argv[]) {
     long level = 1;
     long param = 1;
-    bool stats = false;
+    bool show_stats = false;
 
     // extract values from given arguments
 
-    if (!extract_params(argc, argv, &level, &param, &stats)) {
+    if (!extract_params(argc, argv, &level, &param, &show_stats)) {
         return EXIT_FAILURE;
     }
 
@@ -387,20 +364,20 @@ int main(int argc, const char *argv[]) {
 
     // Setup stats
 
-    Stats statistics = {{false}, 0, 0, 0};
+    Stats stats = {{false}, 0, 0, 0};
 
     // Read & process passwords
 
     char pass[BUFFER_SIZE];
     int length = 0;  // length of the password
 
-    while (read_pass(pass, &statistics, &length)) {
+    while (read_pass(pass, &stats, &length)) {
         if (length > MAX_LENGTH) {
             fprintf(stderr, "Password too long.");
             return EXIT_FAILURE;
         }
 
-        process_stats(&statistics, length);
+        process_stats(&stats, length);
 
         // Print when we pass all of the required levels.
         if (check_levels(pass, level, param)) {
@@ -410,13 +387,13 @@ int main(int argc, const char *argv[]) {
 
     // Print stats if requested.
 
-    if (stats) {
+    if (show_stats) {
         // calculate unique characters
 
         int unique = 0;
 
         for (int i = 0; i < 128; i++) {
-            if (statistics.unique_chars[i]) {
+            if (stats.unique_chars[i]) {
                 unique++;
             }
         }
@@ -425,7 +402,7 @@ int main(int argc, const char *argv[]) {
             "Statistika:\nRuznych znaku: %d\nMinimalni delka: "
             "%d\nPrumerna "
             "delka: %.1f\n",
-            unique, statistics.min, (statistics.sum / statistics.pass_count));
+            unique, stats.min, (stats.sum / stats.pass_count));
     }
 
     return 0;
