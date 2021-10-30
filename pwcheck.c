@@ -127,15 +127,7 @@ bool duplicate_substrings(const char *str, int sub_length) {
     return false;
 }
 
-bool parse_bool_switch(const char *arg, char *param, char *alias, bool *res) {
-    if (cmp(arg, param) || cmp(arg, alias)) {
-        *res = true;
-        return true;
-    }
-
-    return false;
-}
-
+// parse a long from given string @str, save into @res
 bool parse_long(const char *str, long *res) {
     char *ptr;
     long extractedValue = strtol(str, &ptr, 10);
@@ -146,6 +138,16 @@ bool parse_long(const char *str, long *res) {
 
     *res = extractedValue;
     return true;
+}
+
+// parse a boolean switch from @arg, save into @res
+bool parse_bool_switch(const char *arg, char *param, char *alias, bool *res) {
+    if (cmp(arg, param) || cmp(arg, alias)) {
+        *res = true;
+        return true;
+    }
+
+    return false;
 }
 
 /*
@@ -169,6 +171,20 @@ bool parse_long_param(const char *arg, const char *next_arg, const char *param,
     }
 
     return false;
+}
+
+bool parse_fixed(const char *arg, long *value, bool switches) {
+    if (!parse_long(arg, value)) {
+        fprintf(stderr, "Level has to be a number.\n");
+        return false;
+    }
+
+    if (switches) {
+        fprintf(stderr, "Invalid arguments.\n");
+        return false;
+    }
+
+    return true;
 }
 
 /*
@@ -201,37 +217,25 @@ bool extract_params(int argc, char const *argv[], long *level, long *param,
         } else {
             // look for level & param values in the argument
 
-            if (level_sign == 0) {
-                if (!parse_long(argv[n], level)) {
-                    fprintf(stderr, "Level has to be a number.\n");
-                    return 0;
-                }
+            fixed = true;
 
-                if (switches) {
+            if (level_sign == 0) {
+                if (!parse_fixed(argv[n], level, switches)) {
                     fprintf(stderr, "Invalid arguments.\n");
                     return false;
                 }
-
-                fixed = true;
 
                 level_sign = 1;
             } else if (param_sign == 0) {
-                if (!parse_long(argv[n], param)) {
-                    fprintf(stderr, "Param has to be a number.\n");
-                    return 0;
-                }
-
-                if (switches) {
+                if (!parse_fixed(argv[n], param, switches)) {
                     fprintf(stderr, "Invalid arguments.\n");
                     return false;
                 }
-
-                fixed = true;
 
                 param_sign = 1;
             } else {
                 fprintf(stderr, "Too many arguments!\n");
-                return 0;
+                return false;
             }
         }
 
@@ -312,6 +316,12 @@ bool read_pass(char *pass, Stats *stats, int *length) {
     for (i = 0;; i++) {
         c = fgetc(stdin);
 
+        if (i > MAX_LENGTH) {
+            // just return a number higher than limit to throw an err
+            *length = MAX_LENGTH + 1;
+            return false;
+        }
+
         if (c == EOF) {
             return false;
         }
@@ -372,17 +382,17 @@ int main(int argc, const char *argv[]) {
     int length = 0;  // length of the password
 
     while (read_pass(pass, &stats, &length)) {
-        if (length > MAX_LENGTH) {
-            fprintf(stderr, "Password too long.");
-            return EXIT_FAILURE;
-        }
-
         process_stats(&stats, length);
 
         // Print when we pass all of the required levels.
         if (check_levels(pass, level, param)) {
             printf("%s\n", pass);
         }
+    }
+
+    if (length > MAX_LENGTH) {
+        fprintf(stderr, "Password too long.\n");
+        return EXIT_FAILURE;
     }
 
     // Print stats if requested.
