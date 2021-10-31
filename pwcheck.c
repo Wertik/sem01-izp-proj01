@@ -30,14 +30,14 @@ int length(const char *str) {
 /*
     compare two strings
 */
-int cmp(const char *str1, const char *str2) {
+bool cmp(const char *str1, const char *str2) {
     for (int i = 0; str1[i] != '\0' || str2[i] != '\0'; i++) {
         if (str1[i] != str2[i]) {
-            return 0;
+            return false;
         }
     }
 
-    return 1;
+    return true;
 }
 
 bool find(const char *where, const char *what, int start) {
@@ -61,14 +61,14 @@ bool find(const char *where, const char *what, int start) {
 
 // check whether a string contains at least one character the an ASCII range
 // specified by low & high
-int ascii_range(const char *str, char low, char high) {
+bool ascii_range(const char *str, char low, char high) {
     for (int n = 0; str[n] != '\0'; n++) {
         if (str[n] >= low && str[n] <= high) {
-            return 1;
+            return true;
         }
     }
 
-    return 0;
+    return false;
 }
 
 // check whether a string contains any special ASCII characters
@@ -80,7 +80,7 @@ int special_chars(const char *str) {
 // count how many duplicate sequential characters there are in a given string,
 // until a threshold is reached level = 3 param = 3 // max. počet stejných
 // charakterů za sebou
-int duplicate_chars(const char *str, int threshold) {
+bool duplicate_chars(const char *str, int threshold) {
     char last = str[0];
     int count = 1;
 
@@ -94,11 +94,11 @@ int duplicate_chars(const char *str, int threshold) {
         last = str[i];
 
         if (count >= threshold) {
-            return 1;
+            return true;
         }
     }
 
-    return 0;
+    return false;
 }
 
 // slice a string, return into @param buff
@@ -173,6 +173,7 @@ bool parse_long_param(const char *arg, const char *next_arg, const char *param,
     return false;
 }
 
+// parse a fixed long param from @arg, save into @value
 bool parse_fixed(const char *arg, long *value, bool switches) {
     if (!parse_long(arg, value)) {
         fprintf(stderr, "Level has to be a number.\n");
